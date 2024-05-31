@@ -222,6 +222,46 @@ func processMsg(msg *nats.Msg) {
 
 ```
 
+NATS Tool:
+fan-out pattern - one message send and it received by multiple receivers
+
+> nats pub "intros" "hello world {{Count}}" --count=100 --sleep 1s
+
+> nats sub "intros"
+
+> nats sub "intros" --queue zip
+
+> nats request "intros" ""
+
+> nats reply "intros" "got your request # {{Count}}"
+
+
+NATS Subject
+Subject is just a string of char that form a name which the publisher and subscriber can
+used to find each other.
+
+subject name:
+recommended char (a-z,A-Z,0-9)
+special char    (.,>,* )
+    .
+    create hierarchy
+    weather.us
+    weather.us.east
+    weather.gy.west
+
+    *
+    wildcard charactor, used to match single token
+    weather.*.east
+
+    >
+    wildcard token
+    must appear at the end of subject
+
+
+reverse sub     ($ start with )
+
+
+
 
 
 
