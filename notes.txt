@@ -1,0 +1,130 @@
+NATS 
+
+Micro-service connectivity
+
+Why NATS ?
+The Problem
+micro-service need to communicate 
+app need to be resilient against failure
+app should scale seamlessly 
+new services should be added/removed without disruption
+
+Desired solution 
+Connect many decoupled application service 
+Make it easy 
+securely 
+provide flexibility in messaging pattern 
+scale 
+
+NATS micro-service 
+s1   s2   s3   s3 (all about messages)
+|     |    |    | 
+----------------- [bus, common interface]
+
+Feature 
+* Location independent, addressing 
+* pub/sub 
+* request/reply 
+* stream 
+* persistance 
+* secure by default 
+* global scale 
+* multi tenancy 
+* small binary 
+* many client library 
+* high speed 
+* high fan-out 
+* double subscriber 
+* encrypt at rest 
+* subject limits 
+* scalable clustering 
+* Edge & IOT 
+* easy configuration 
+* OSS
+
+NATS server installation and setup ( build in go )
+type: binary,docker,kubernetes
+start server: start nates server 
+
+Installation
+https://nats.io
+
+run docker
+> docker run --rm -p 4222:4222 nats:latest
+
+binary install 
+refer https://nats.io link for different option 
+
+
+How NATS works ? 
+if s1 want to communicate with s3, service to service connect by client
+they don't know about their service name, but they know about topic to communicate 
+
+s1=> message[to:s3,from:s1,message:"message"]
+
+client1 (s1) <----> [NATS] <-----> client2(s3)
+
+how does NATS does message exchange ? 
+if client want to receive message, 
+it just simply subscribe to that subject 
+
+subject      subscribed client 
+foo.bar      s3,s4,s7
+payment.post s8 
+
+what happen when client sending message and their is not subscriber ? 
+NATS simple drop the message ( we can persist it by configuration, Eg. JetStream)
+
+
+Publish/Subscriber
+see example/pub-sub for code
+
+Publisher
+```
+func main() {
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		log.Fatal("[error] while connecting nats ", err)
+	}
+	defer nc.Close()
+
+	for {
+		msg := "Hello World!"
+		err = nc.Publish("intros", []byte(msg))
+		if err != nil {
+			fmt.Println("[error] message failed to published", err)
+		}
+		log.Println("[info] message published", msg)
+		time.Sleep(1 * time.Second)
+	}
+}
+```
+
+Subscriber
+```
+func main() {
+
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		log.Fatal("error while connecting nats ", err)
+	}
+	defer nc.Close()
+
+	nc.Subscribe("intros", func(msg *nats.Msg) {
+		fmt.Println("[info] received message: ", string(msg.Data))
+	})
+
+	time.Sleep(1 * time.Minute)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
