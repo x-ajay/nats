@@ -262,6 +262,67 @@ reverse sub     ($ start with )
 
 
 
+Security
+
+JetStream
+Build in distributed persistence system called jetstream which enable new fuctionalities and higher
+quelities of service on tops of base Core NATS functionalities quality of services
+
+What jetstream is enable
+streaming
+    temporary decoupling between publishers and subscribers
+        other consumer solved this by Durable consumer or queues
+        NATS solve the issue with stream
+    how it solves ?
+        key/value store
+            similar to redis
+    Documents store
+        similar to s3
+
+    stream:
+        stream capture and store messages published one or more subject
+        NATS client consume messages from stream, at any time by creating subscribers
+            a stream subscriber is also called stream consumer or just consumer
+            can replay message in stream
+            consumer can reply all or some of the messages stored in stream
+
+   Features of stream:
+    replay policy
+        how and when message deliver to consumer
+    retention policy
+        how long to keep messages and rules for discarding
+        policy:
+            limit: age,number of messages, stream size etc
+            interest: keep messages that haven't been consumed
+            work queue: stream is used as shared queue, and messages are remove as they consumed
+        storage
+
+
+stream illustration
+
+s1 ---[pub]---> (order.new)----------------------+-------------[sub]----> s4
+                                               |
+                              stream           |
+                            Name: ORDER        |
+                            subject: order.*   |
+                                               |
+s2---[sub] <--------------   [.....]  <--------+
+ |
+ +--[pub]--(order.filled)->  [.....]
+                                  |
+ s3 <------[sub]------------------+
+
+Ephemeral Consumer/Durable Consumer
+1) setup config nats ( setup user,password in ~/.config/nats/context/<context>.json
+2) setup auth with nats-server with setup stream ( refer example/jetstream/js.conf file )
+> nats-server  -c js.conf
+3) start publishing
+> nats pub orders.us --count=1000 --sleep 2s "US order # {{Count}}"
+
+
+
+
+
 
 
 
