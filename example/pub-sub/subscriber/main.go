@@ -22,14 +22,19 @@ func main() {
 	}
 	defer nc.Close()
 
-	nc.Subscribe("intros", func(msg *nats.Msg) {
-		payload := &Payload{}
-		_ = json.Unmarshal(msg.Data, payload)
-		replyMsg := fmt.Sprintf("received payload %d", payload.Count)
-		msg.Respond([]byte(replyMsg))
-		fmt.Println("[info] received message: ", string(msg.Data))
-
-	})
+	subscription, err := nc.QueueSubscribe("intros", "zip", processMsg)
+	if err != nil {
+		log.Fatal("error while subscribing zip queue", err)
+	}
+	defer subscription.Unsubscribe()
 
 	time.Sleep(1 * time.Minute)
+}
+
+func processMsg(msg *nats.Msg) {
+	payload := &Payload{}
+	_ = json.Unmarshal(msg.Data, payload)
+	replyMsg := fmt.Sprintf("received payload %d", payload.Count)
+	msg.Respond([]byte(replyMsg))
+	fmt.Println("[info] received message: ", string(msg.Data))
 }
