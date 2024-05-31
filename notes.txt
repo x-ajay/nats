@@ -118,7 +118,73 @@ func main() {
 }
 ```
 
+Req/Reply
+Why ?
+Ensure message is received
 
+
+```
+type Payload struct {
+	Data  string `json:"data,omitempty"`
+	Count int    `json:"count,omitempty"`
+}
+```
+
+Publisher
+```
+
+func main() {
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		log.Fatal("[error] while connecting nats ", err)
+	}
+	defer nc.Close()
+
+	count := 0
+	timeout := time.Millisecond * 500
+
+	payload := &Payload{
+		Data: "hello world",
+	}
+	for {
+		payload.Count = count
+		msg, _ := json.Marshal(payload)
+		reply, err := nc.Request("intros", msg, timeout)
+		time.Sleep(1 * time.Second)
+		if err != nil {
+			fmt.Println("[error] failed to send message=", payload.Data, "count=", payload.Count, "err=", err)
+			continue
+		}
+		count++
+		log.Println("[info] message=", payload.Data, "count=", payload.Count, "reply=", string(reply.Data))
+	}
+
+}
+```
+
+Subscriber
+```
+func main() {
+
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		log.Fatal("error while connecting nats ", err)
+	}
+	defer nc.Close()
+
+	nc.Subscribe("intros", func(msg *nats.Msg) {
+		payload := &Payload{}
+		_ = json.Unmarshal(msg.Data, payload)
+		replyMsg := fmt.Sprintf("received payload %d", payload.Count)
+		msg.Respond([]byte(replyMsg))
+		fmt.Println("[info] received message: ", string(msg.Data))
+
+	})
+
+	time.Sleep(1 * time.Minute)
+}
+
+```
 
 
 
